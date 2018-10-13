@@ -2,7 +2,7 @@ const net = require('net');
 const fs = require('fs');
 const path = require('path');
 
-const port = 8124;
+const port = 8123;
 const client = new net.Socket();
 let files = [];
 let promise;

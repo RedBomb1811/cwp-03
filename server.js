@@ -1,10 +1,18 @@
 const net = require('net');
 const fs = require('fs');
 const path = require('path');
-const port = 8124;
+const port = 8123;
 let logger;
+let connections = 0;
+// let dir = process.env.defaultDir;
+// let maxConn = parseInt(process.env.MaxConn);
+let dir = './received_files/';
+let maxConn = 3;
 
 const server = net.createServer((client) => {
+    if (++connections > maxConn) {
+        client.destroy();
+    }
     client.id = Date.now();
     logger = fs.createWriteStream('client_' + client.id + '.log');
     logger.write('Client ' + client.id + ' connected\n');
@@ -32,24 +40,22 @@ function dataHandler(p_data, client, logger) {
             client.write('NEXT');
             break;
         default:
-            console.log('Disconnet client!')
+            console.log('Disconnect client!')
             client.write('DEC');
             break;
     }
 }
 
-///TODO: 6 and 7 ex
-
 function createFile(p_id, p_name, p_data_hex) {
-    if (!fs.existsSync('./received_files/' + p_id))
-        fs.mkdir('./received_files/' + p_id, () => {
-            fs.writeFile('./received_files/' + p_id + path.sep + p_name, Buffer.from(p_data_hex, 'hex'), (err) => {
+    if (!fs.existsSync(dir + p_id))
+        fs.mkdir(dir + p_id, () => {
+            fs.writeFile(dir + p_id + '/' + p_name, Buffer.from(p_data_hex, 'hex'), (err) => {
                 if (err) throw err;
-                logger.write('Create ./' + p_id + '/' + p_name + '\n');
+                logger.write('Create ' + dir + '/' + + p_id + '/' + p_name + '\n');
             });
         });
     else
-        fs.writeFile('./received_files/' + p_id + path.sep + p_name, Buffer.from(p_data_hex, 'hex'), (err) => {
+        fs.writeFile(dir + p_id + path.sep + p_name, Buffer.from(p_data_hex, 'hex'), (err) => {
             if (err) throw err;
             logger.write('Create ./' + p_id + '/' + p_name + '\n');
         });
